@@ -258,16 +258,9 @@ func (k *Kubernetes) InitKubeCache(ctx context.Context) (onStart func() error, o
 	onStart = func() error {
 		go func() {
 			if initEndpointWatch {
-				// Revert to watching Endpoints for incompatible K8s.
-				// This can be removed when all supported k8s versions support endpointslices.
-				ok, v := k.endpointSliceSupported(kubeClient)
-				if !ok {
-					k.APIConn.(*dnsControl).WatchEndpoints(ctx)
-				}
-				// Revert to EndpointSlice v1beta1 if v1 is not supported
-				if ok && v == discoveryV1beta1.SchemeGroupVersion.String() {
-					k.APIConn.(*dnsControl).WatchEndpointSliceV1beta1(ctx)
-				}
+				// The metaServer module of edgecore does not have `version` api,
+				// so don't call the endpointSliceSupport function here. @Poorunga
+				k.APIConn.(*dnsControl).WatchEndpoints(ctx)
 			}
 			k.APIConn.Run()
 		}()
